@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Information</title>
+    <style>
+        body {
+	    background-color: purple;
+            font-family: "Helvetica", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s;
+        }
+	.question {
+        text-align: center;
+        font-size: 24px;
+}
+        .age-selection,
+        .gender-selection,
+        .nationality-selection,
+        .navigation {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        text-align: left;
+        font-size: 24px;
+    }
+
+        .hidden {
+            display: none;
+        }
+
+        #timerDisplay {
+            font-size: 48px;
+            margin-top: 20px;
+        }
+
+        #timerButtons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #timerButtons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 24px;
+        }
+
+        .navigation button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="heading" style="font-size: 32px;">User Information</h1>
+
+    <!-- Age Selection -->
+    <div class="age-selection" id="ageSelection" >
+        <p>Please select your age:</p>
+        <button onclick="selectAge('12')">12</button>
+        <button onclick="selectAge('13')">13</button>
+        <button onclick="selectAge('14')">14</button>
+        <button onclick="selectAge('15')">15</button>
+        <button onclick="selectAge('16')">16</button>
+        <button onclick="selectAge('17')">17</button>
+    </div>
+
+    <!-- Gender Selection -->
+    <div class="gender-selection hidden" id="genderSelection" >
+        <p>Please select your gender:</p>
+        <button onclick="selectGender('Male')">Male</button>
+        <button onclick="selectGender('Female')">Female</button>
+        <button onclick="selectGender('Other')">Other</button>
+    </div>
+
+    <!-- Nationality Selection -->
+    <div class="nationality-selection hidden" id="nationalitySelection">
+        <p>Please enter your nationality:</p>
+        <input type="text" id="nationalityInput" style="font-size: 24px;" placeholder="Enter your nationality">
+        <button onclick="showResults()">Submit</button>
+    </div>
+
+    <div id="results" style="display: none;">
+        <h2 id="ageResult" onclick="changeColor('ageResult')">Age:</h2>
+        <h2 id="genderResult" onclick="changeColor('genderResult')">Gender:</h2>
+        <h2 id="nationalityResult" onclick="changeColor('nationalityResult')">Nationality:</h2>
+    </div>
+
+    <div id="timerDisplay" style="display: none;"></div>
+
+    <div id="timerButtons" style="display: none;">
+        <button onclick="startTimer()" id="startButton">Start</button>
+        <button onclick="stopTimer()" id="stopButton" style="display: none;">Stop</button>
+        <button onclick="continueTimer()" id="continueButton" style="display: none;">Continue</button>
+        <button onclick="resetTimer()" id="resetButton" style="display: none;">Reset</button>
+    </div>
+
+    <script>
+        let initialColor = '';
+        let navigationDisplayed = false;
+        let lastQuestionTime = 0;
+        let timerInterval;
+        let totalSeconds = 0;
+        let buttonPressed = false;
+
+        function changeBackground(nextSection) {
+            const currentSection = document.querySelector('.age-selection:not(.hidden)') || document.querySelector('.gender-selection:not(.hidden)');
+            initialColor = getRandomColor();
+            currentSection.classList.add('hidden');
+            const nextSectionElement = document.querySelector(`.${nextSection}`);
+            nextSectionElement.classList.remove('hidden');
+            document.body.style.backgroundColor = initialColor;
+            lastQuestionTime = Date.now();
+        }
+
+        function showNavigation() {
+            if (!navigationDisplayed) {
+                const currentTime = Date.now();
+                if (currentTime - lastQuestionTime >= 6000) {
+                    const navigation = document.createElement('div');
+                    navigation.classList.add('navigation');
+                    navigation.innerHTML = `
+                        <p>Please select an option:</p>
+                        <button onclick="showTimer()">Timer</button>
+                        <button onclick="showMentalHealth()">Mental Health</button>
+                        <button onclick="showContact()">Contact</button>
+                        <button onclick="showHome()">Home</button>
+                    `;
+                    document.body.insertBefore(navigation, document.body.firstChild);
+                    navigationDisplayed = true;
+                    document.getElementById('heading').style.display = 'none';
+                    document.getElementById('ageSelection').style.display = 'none';
+                    document.getElementById('genderSelection').style.display = 'none';
+                    document.getElementById('nationalitySelection').style.display = 'none';
+                    document.getElementById('ageResult').style.display = 'none';
+                    document.getElementById('genderResult').style.display = 'none';
+                    document.getElementById('nationalityResult').style.display = 'none';
+                }
+            }
+        }
+          function showResults() {
+              document.querySelector('.nationality-selection').classList.add('hidden');
+              document.getElementById('results').style.display = 'block';
+              const nationality = document.getElementById('nationalityInput').value;
+              document.getElementById('nationalityResult').innerText += ' ' + nationality;
+              changeColor('nationalityResult');
+              setTimeout(showNavigation, 6000);
+          }
+
+          function changeColor(elementId) {
+              const randomColor = getRandomColor();
+              const element = document.getElementById(elementId);
+              element.style.color = randomColor;
+          }
+
+          function updateTimer() {
+              const timerDisplay = document.getElementById('timerDisplay');
+              const minutes = Math.floor(totalSeconds / 60);
+              const seconds = totalSeconds % 60;
+              timerDisplay.innerText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+              totalSeconds++;
+          }
+
+          function startTimer() {
+              timerInterval = setInterval(updateTimer, 1000);
+              document.getElementById('startButton').style.display = 'none';
+              document.getElementById('stopButton').style.display = 'inline-block';
+              document.getElementById('resetButton').style.display = 'inline-block';
+          }
+
+          function stopTimer() {
+              clearInterval(timerInterval);
+              document.getElementById('continueButton').style.display = 'inline-block';
+              document.getElementById('stopButton').style.display = 'none';
+          }
+
+          function continueTimer() {
+              timerInterval = setInterval(updateTimer, 1000);
+              document.getElementById('continueButton').style.display = 'none';
+              document.getElementById('stopButton').style.display = 'inline-block';
+          }
+
+          function resetTimer() {
+              clearInterval(timerInterval);
+              totalSeconds = 0;
+              const timerDisplay = document.getElementById('timerDisplay');
+              timerDisplay.innerText = '0:00';
+              document.getElementById('startButton').style.display = 'inline-block';
+              document.getElementById('stopButton').style.display = 'none';
+              document.getElementById('resetButton').style.display = 'none';
+              document.getElementById('continueButton').style.display = 'none';
+          }
+
+      function showTimer() {
+          const homeContent = document.getElementById('homeText');
+          const mentalHealthContent = document.getElementById('mentalHealthText');
+          if (homeContent) {
+              homeContent.remove();
+          }
+          if (mentalHealthContent) {
+              mentalHealthContent.remove();
+          }
+
+          document.getElementById('ageResult').style.display = 'none';
+          document.getElementById('genderResult').style.display = 'none';
+          document.getElementById('nationalityResult').style.display = 'none';
+          document.getElementById('timerDisplay').style.display = 'block';
+          document.getElementById('timerButtons').style.display = 'flex';
+      }
+
+
+      function showMentalHealth() {
+	document.getElementById('timerButtons').style.display = 'none';
+	document.getElementById('timerDisplay').style.display = 'none';
+          const contentElement = document.getElementById('homeText');
+          if (contentElement) {
+              contentElement.remove();
+          }
+
+          const mentalHealthText = `Mental health is an essential aspect of overall well-being. It influences how we think, feel, and act. It also helps determine how we handle stress, relate to others, and make choices. Taking care of our mental health is just as important as taking care of our physical health. 
+
+          Our website aims to provide resources and guidance for maintaining good mental health, including tips for managing stress, coping with challenges, and seeking professional help when needed.`;
+
+          if (!document.getElementById('mentalHealthText')) {
+              const newContentElement = document.createElement('div');
+              newContentElement.style.fontSize = '20px';
+              newContentElement.style.margin = '20px';
+              newContentElement.id = 'mentalHealthText';
+              newContentElement.textContent = mentalHealthText;
+              document.body.appendChild(newContentElement);
+          }
+      }
+
+
+          function showContact() {
+	document.getElementById('timerButtons').style.display = 'none';
+	document.getElementById('timerDisplay').style.display = 'none';
+              // Define behavior for the Contact option here
+          }
+
+      function showHome() {
+	document.getElementById('timerButtons').style.display = 'none';
+	document.getElementById('timerDisplay').style.display = 'none';
+          const contentElement = document.getElementById('mentalHealthText');
+          if (contentElement) {
+              contentElement.remove();
+          }
+
+          const homeText = `Fitness and education are both very important aspects of life. It’s even more important for young adults and students who are still learning how to manage their time effectively so that both aspects are being approached. 
+
+          Our website makes sure that all items necessary for the growth of a person both mentally and physically are allotted the time that they need. With too little time to play sports or fewer breaks from playing sports, we students usually get frustrated, and that hinders our ability to work to our maximum efficiency.`;
+
+          if (!document.getElementById('homeText')) {
+              const newContentElement = document.createElement('div');
+              newContentElement.style.fontSize = '20px';
+              newContentElement.style.margin = '20px';
+              newContentElement.id = 'homeText';
+              newContentElement.textContent = homeText;
+              document.body.appendChild(newContentElement);
+          }
+      }
+
+
+          function selectAge(age) {
+              changeBackground('gender-selection');
+              document.getElementById('ageResult').innerText += ' ' + age;
+              changeColor('ageResult');
+          }
+
+          function selectGender(gender) {
+              changeBackground('nationality-selection');
+              document.getElementById('genderResult').innerText += ' ' + gender;
+              changeColor('genderResult');
+          }
+
+          function getRandomColor() {
+              const letters = '0123456789ABCDEF';
+              let color = '#';
+              for (let i = 0; i < 6; i++) {
+                  color += letters[Math.floor(Math.random() * 16)];
+              }
+              return color;
+          }
+      </script>
+
+</body>
+</html>
